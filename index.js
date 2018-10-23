@@ -9,6 +9,36 @@
   await browser.close();
 })();
 **/
+//https://developer.salesforce.com/docs/atlas.en-us.platform_events.meta/platform_events/platform_events_subscribe_cometd.htm
+
+// Obtain the CometD APIs.
+var lib = require('cometd');
+ 
+// Create the CometD object.
+var cometd = new lib.CometD();
+ 
+//https://docs.cometd.org/current/reference/#_javascript_handshake
+ 
+// Configure the CometD object.
+cometd.configure({
+    url: 'http://cometd/44.0'
+});
+ 
+// Handshake with the server.
+cometd.handshake(function(h) {
+    if (h.successful) {
+        // Subscribe to receive messages from the server.
+        cometd.subscribe('/event/my_event__e', function(m) {
+          console.log('server data');
+            var dataFromServer = m.data;
+            // Use dataFromServer.
+        });
+    }
+});
+
+
+
+/*
 
 var variables = require('./variables');
 
@@ -35,10 +65,6 @@ request.post('https://login.salesforce.com/services/oauth2/token', {
       'Authorization' : "Bearer " + body.access_token,
       'Content-Type' : 'multipart/form-data'},   
     formData: {
-     // json : { value : "{ 'body': { 'messageSegments':[ { 'type':'Text', 'text':'Please accept this receipt.' } ] },   'capabilities':{ 'content':{ 'description' :'Receipt for expenses', 'title':'test.pdf' } }, 'feedElementType':'FeedItem', 'subjectId':'0056F00000AkxQCQAZ' }",
-      //        options : {"Content-Type" : "application/json; charset=UTF-8"}     
-      //
-     // },
      fileData : { value : fs.createReadStream('test.pdf'),
                options: { "Content-Type" : "application/octet-stream; charset=ISO-8859-1",
                "filename" : "test.pdf"}
@@ -51,3 +77,4 @@ request.post('https://login.salesforce.com/services/oauth2/token', {
   });
 });
 
+*/
