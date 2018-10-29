@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "cometd": "^4.0.0",
+    "cometd-nodejs-client": "^1.0.2",
     "express": "4.16.4",
     "puppeteer": "1.9.0",
-    "request": "2.88.0",
-    "cometd": "4.0.0"
+    "request": "2.88.0"
   }
 }
