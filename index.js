@@ -3,7 +3,6 @@
 
 const puppeteer = require('puppeteer');
 
-
 // Run the adapter code that implements XMLHttpRequest.
 require('cometd-nodejs-client').adapt();
 // Obtain the CometD APIs.
@@ -29,7 +28,7 @@ request.post('https://login.salesforce.com/services/oauth2/token', {
   client_id : variables.clientId,
   client_secret : variables.clientSecret,
   username : variables.username,
-  password : variables.password },  
+  password : variables.password + variables.token },  
   json: true
 }, function (err, res, body) {
   //console.log(JSON.stringify(body));
@@ -39,8 +38,58 @@ request.post('https://login.salesforce.com/services/oauth2/token', {
 //https://developer.salesforce.com/docs/atlas.en-us.chatterapi.meta/chatterapi/intro_input.htm
 //https://developer.salesforce.com/docs/atlas.en-us.chatterapi.meta/chatterapi/connect_requests_file_input.htm
 
+  var pageURL = body.instance_url + '/secur/frontdoor.jsp?sid=' + body.access_token;
+
+  //https://www.npmjs.com/package/curl-request
 
 
+  console.log(pageURL);
+  //var pageURL = body.instance_url + '/apex/testPage';
+    
+  //https://salesforce.stackexchange.com/questions/44799/how-to-access-servlet-rtaimage-resources-over-the-api
+  //use a cookie to authenticate, not frontdoor jsp
+
+  //http://bobbuzzard.blogspot.com/2017/
+  //could do jwt auth on sfdx,
+  
+  /*
+  var child_process=require('child_process');
+  console.log('Getting org details');
+  var orgDetail=JSON.parse(child_process.execFileSync('sfdx', ['force:org:describe', '--json']));
+  var instance=orgDetail.instanceUrl;
+  var token=orgDetail.accessToken;
+  */
+
+
+  /*
+  or redirects? 
+  https://salesforce.stackexchange.com/questions/44799/how-to-access-servlet-rtaimage-resources-over-the-api
+  */
+
+  (async () => {
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+    await page.goto('https://login.salesforce.com', {waitUntil: 'networkidle0'});
+    await page.click('#username');
+    await page.keyboard.type(variables.username);
+    await page.click('#password');
+    await page.keyboard.type(variables.password);
+    await page.click('#Login');
+    await page.waitForNavigation({waitUntil: ['domcontentloaded', 'networkidle0']});
+    //await page.waitFor('*');
+    
+
+    var test = await page.goto('https://c.ap4.visual.force.com/apex/testPage', {waitUntil: ['domcontentloaded', 'networkidle0']});
+    await page.pdf({path: 'test.pdf', format: 'A4'});
+
+    await browser.close();
+  })();
+
+  //https://instance.salesforce.com/secur/frontdoor.jsp?sid=session_ID&retURL=optional_relative_url_to_open
+
+
+//platform event
+/**
   // Configure the CometD object.
   cometd.configure({
     url: body.instance_url + '/cometd/44.0',
@@ -60,51 +109,6 @@ request.post('https://login.salesforce.com/services/oauth2/token', {
             //var dataFromServer = m.data;
             // Use dataFromServer.
 
-            //var pageURL = body.instance_url + '/secur/frontdoor.jsp?sid=' + body.access_token + '&retURL=/apex/testPage';
-            var pageURL = body.instance_url + '/apex/testPage';
-            
-            console.log(pageURL);
-            
-            //https://salesforce.stackexchange.com/questions/44799/how-to-access-servlet-rtaimage-resources-over-the-api
-            //use a cookie to authenticate, not frontdoor jsp
-
-            //http://bobbuzzard.blogspot.com/2017/
-            //could do jwt auth on sfdx,
-            
-            /*
-            var child_process=require('child_process');
-            console.log('Getting org details');
-            var orgDetail=JSON.parse(child_process.execFileSync('sfdx', ['force:org:describe', '--json']));
-            var instance=orgDetail.instanceUrl;
-            var token=orgDetail.accessToken;
-            */
-
-
-            /*
-            or redirects? 
-            https://salesforce.stackexchange.com/questions/44799/how-to-access-servlet-rtaimage-resources-over-the-api
-            */
-
-            (async () => {
-              const browser = await puppeteer.launch();
-              const page = await browser.newPage();
-              await page.setCookie({
-                name: 'sid',
-                value: body.access_token,
-                domain: 'c.ap4.salesforce.com',
-                path: '/',
-                expires: 1540812327,
-                httpOnly: false,
-                secure: true
-              });
-              await page.goto(pageURL, {waitUntil: 'networkidle2'});
-              await page.pdf({path: 'test.pdf', format: 'A4'});
-
-              await browser.close();
-            })();
-
-            //https://instance.salesforce.com/secur/frontdoor.jsp?sid=session_ID&retURL=optional_relative_url_to_open
-
 
 
 
@@ -114,7 +118,7 @@ request.post('https://login.salesforce.com/services/oauth2/token', {
     }
   });
 
-
+**/
 
   //PDF UPLOAD
   /*
