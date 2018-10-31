@@ -10,8 +10,10 @@ var cometd = new lib.CometD();
  * TODO:
  * fire platform event from button on record
  * create parameters on vfp that grab data from server
+ * make vfp hardcoded link come from the instance url
  * implement uploading file onto the record passed in the platform event
  * load onto heroku
+ * add more things to the constants file, eg: api version, plat event name
  */
 
 
@@ -25,6 +27,7 @@ request.post('https://login.salesforce.com/services/oauth2/token', {
   password : variables.password + variables.token },  
   json: true
 }, function (err, res, body) {
+  console.log('salesforce login success');
   //file upload endpoint for later, just uploads to user home
   var endpoint = body.instance_url + '/services/data/v43.0/connect/files/users/0056F00000AkxQCQAZ';
   //setup cometd to listen to the event
@@ -38,9 +41,10 @@ request.post('https://login.salesforce.com/services/oauth2/token', {
   
   cometd.handshake(function(h) {
     if (h.successful) {
+      console.log('cometd handshake success');
       //2. subscribe to platform event
       cometd.subscribe('/event/Test__e', function(m) {
-        console.log('Event received');
+        console.log('event received');
         //3. create the PDF
         (async () => {
           const browser = await puppeteer.launch();
@@ -70,9 +74,7 @@ request.post('https://login.salesforce.com/services/oauth2/token', {
               } 
             }
           }, function (err, res, body) {
-            console.log(err);
-            console.log(res);
-            console.log(body);
+            console.log('upload complete');
           });
         })();
       });
