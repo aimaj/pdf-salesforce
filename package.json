@@ -6,7 +6,6 @@
   "dependencies": {
     "cometd": "^4.0.0",
     "cometd-nodejs-client": "^1.0.2",
-    "curl-request": "^1.1.1",
     "express": "4.16.4",
     "puppeteer": "1.9.0",
     "request": "2.88.0"
