@@ -62,8 +62,8 @@ request.post('https://login.salesforce.com/services/oauth2/token', {
           //4. upload the PDF
           
           //file upload endpoint for later, just uploads to user home
-          var endpoint = body.instance_url + '/services/data/v43.0/connect/files/users/0056F00000AkxQCQAZ';
-          //var endpoint = body.instance_url + '/services/data/v43.0/chatter/feeds/record/' + m.data.payload.Id__c + '/feed-items';
+          //var endpoint = body.instance_url + '/services/data/v43.0/connect/files/users/0056F00000AkxQCQAZ';
+          var endpoint = body.instance_url + '/services/data/v43.0/chatter/feed-elements';
           request({
             uri : endpoint,
             method : 'POST',
@@ -71,32 +71,32 @@ request.post('https://login.salesforce.com/services/oauth2/token', {
               'Authorization' : "Bearer " + body.access_token,
               'Content-Type' : 'multipart/form-data'},   
             formData: 
-            {
-           /* 
+            //{
             JSON.stringify({
               json : { "body":   {
+                        "subjectId" : m.data.payload.Id__c,
                         "messageSegments" : [{
                             "type" : "Text", 
                             "text" : "Here is another file for review."
                         }]
                       }, 
-                      "attachment": 
-                      {
-                        "attachmentType" : "NewFile",
-                        "description": "PDF Document",
-                        "title" : m.data.payload.Id__c + '.pdf'
+                      "capabilities":{
+                         "content":{
+                            "description":"PDF",
+                            "title": m.data.payload.Id__c + '.pdf'
+                         }
                       },
+                      "feedElementType" : "FeedItem",
                       "options": { "Content-Type" : "application/json; charset=UTF-8"}
               }, 
-            */
-              fileData : { value : fs.createReadStream('test.pdf'),
+              //fileData : { value : fs.createReadStream('test.pdf'),
               //feedItemFileUpload : { value : fs.createReadStream('test.pdf'),
-              //feedElementFileUpload : { value : fs.createReadStream('test.pdf'),
+              feedElementFileUpload : { value : fs.createReadStream('test.pdf'),      
                         options: { "Content-Type" : "application/octet-stream; charset=ISO-8859-1",
                         "filename" : m.data.payload.Id__c + '.pdf'}
               } 
-            //})
-          }
+            })
+          //}
           }, function (err, res, body) {
             console.log(JSON.stringify(err) + JSON.stringify(res) + JSON.stringify(body));
             console.log('upload complete');
