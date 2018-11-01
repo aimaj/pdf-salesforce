@@ -28,8 +28,6 @@ request.post('https://login.salesforce.com/services/oauth2/token', {
   json: true
 }, function (err, res, body) {
   console.log('salesforce login success');
-  //file upload endpoint for later, just uploads to user home
-  var endpoint = body.instance_url + '/services/data/v43.0/connect/files/users/0056F00000AkxQCQAZ';
   //setup cometd to listen to the event
   cometd.configure({
     url: body.instance_url + '/cometd/44.0',
@@ -56,24 +54,51 @@ request.post('https://login.salesforce.com/services/oauth2/token', {
           await page.keyboard.type(variables.password);
           await page.click('#Login');
           await page.waitForNavigation({waitUntil: ['domcontentloaded', 'networkidle0']});
-          var test = await page.goto('https://c.ap4.visual.force.com/apex/testPage', {waitUntil: ['domcontentloaded', 'networkidle0']});
-          await page.pdf({path: 'test.pdf', format: 'A4'});
+          var test = await page.goto(body.instance_url + '/apex/testPage?id=' + m.data.payload.Id__c, {waitUntil: ['domcontentloaded', 'networkidle0']});
+          await page.pdf({path: m.data.payload.Id__c + '.pdf', format: 'A4'});
           await browser.close();
 
+          console.log('uploading pdf');
           //4. upload the PDF
+          
+          //file upload endpoint for later, just uploads to user home
+          var endpoint = body.instance_url + '/services/data/v43.0/connect/files/users/0056F00000AkxQCQAZ';
+          //var endpoint = body.instance_url + '/services/data/v43.0/chatter/feeds/record/' + m.data.payload.Id__c + '/feed-items';
           request({
             uri : endpoint,
             method : 'POST',
             headers : {
               'Authorization' : "Bearer " + body.access_token,
               'Content-Type' : 'multipart/form-data'},   
-            formData: {
-            fileData : { value : fs.createReadStream('test.pdf'),
-                      options: { "Content-Type" : "application/octet-stream; charset=ISO-8859-1",
-                      "filename" : "test.pdf"}
+            formData: 
+            {
+           /* 
+            JSON.stringify({
+              json : { "body":   {
+                        "messageSegments" : [{
+                            "type" : "Text", 
+                            "text" : "Here is another file for review."
+                        }]
+                      }, 
+                      "attachment": 
+                      {
+                        "attachmentType" : "NewFile",
+                        "description": "PDF Document",
+                        "title" : m.data.payload.Id__c + '.pdf'
+                      },
+                      "options": { "Content-Type" : "application/json; charset=UTF-8"}
+              }, 
+            */
+              fileData : { value : fs.createReadStream('test.pdf'),
+              //feedItemFileUpload : { value : fs.createReadStream('test.pdf'),
+              //feedElementFileUpload : { value : fs.createReadStream('test.pdf'),
+                        options: { "Content-Type" : "application/octet-stream; charset=ISO-8859-1",
+                        "filename" : m.data.payload.Id__c + '.pdf'}
               } 
-            }
+            //})
+          }
           }, function (err, res, body) {
+            console.log(JSON.stringify(err) + JSON.stringify(res) + JSON.stringify(body));
             console.log('upload complete');
           });
         })();
