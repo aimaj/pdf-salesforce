@@ -8,9 +8,6 @@ var cometd = new lib.CometD();
 
 /**
  * TODO:
- * fire platform event from button on record
- * create parameters on vfp that grab data from server
- * make vfp hardcoded link come from the instance url
  * implement uploading file onto the record passed in the platform event
  * load onto heroku
  * add more things to the constants file, eg: api version, plat event name
@@ -53,7 +50,7 @@ request.post('https://login.salesforce.com/services/oauth2/token', {
           await page.click('#password');
           await page.keyboard.type(variables.password);
           await page.click('#Login');
-          await page.waitForNavigation({waitUntil: ['domcontentloaded', 'networkidle0']});
+          await page.waitForNavigation({waitUntil: ['domcontentloaded', 'networkidle0'], timeout: 3000000});
           var test = await page.goto(body.instance_url + '/apex/testPage?id=' + m.data.payload.Id__c, {waitUntil: ['domcontentloaded', 'networkidle0']});
           await page.pdf({path: m.data.payload.Id__c + '.pdf', format: 'A4'});
           await browser.close();
@@ -62,8 +59,8 @@ request.post('https://login.salesforce.com/services/oauth2/token', {
           //4. upload the PDF
           
           //file upload endpoint for later, just uploads to user home
-          //var endpoint = body.instance_url + '/services/data/v43.0/connect/files/users/0056F00000AkxQCQAZ';
-          var endpoint = body.instance_url + '/services/data/v43.0/chatter/feed-elements';
+          var endpoint = body.instance_url + '/services/data/v43.0/connect/files/users/0056F00000AkxQCQAZ';
+          //var endpoint = body.instance_url + '/services/data/v43.0/chatter/feed-elements';
           request({
             uri : endpoint,
             method : 'POST',
@@ -71,10 +68,10 @@ request.post('https://login.salesforce.com/services/oauth2/token', {
               'Authorization' : "Bearer " + body.access_token,
               'Content-Type' : 'multipart/form-data'},   
             formData: 
-            //{
-            JSON.stringify({
+            {
+            //JSON.stringify({
+              /*
               json : { "body":   {
-                        "subjectId" : m.data.payload.Id__c,
                         "messageSegments" : [{
                             "type" : "Text", 
                             "text" : "Here is another file for review."
@@ -86,23 +83,62 @@ request.post('https://login.salesforce.com/services/oauth2/token', {
                             "title": m.data.payload.Id__c + '.pdf'
                          }
                       },
+                      "subjectId" : m.data.payload.Id__c,
                       "feedElementType" : "FeedItem",
                       "options": { "Content-Type" : "application/json; charset=UTF-8"}
               }, 
-              //fileData : { value : fs.createReadStream('test.pdf'),
+              */
+              fileData : { value : fs.createReadStream(m.data.payload.Id__c + '.pdf'),
               //feedItemFileUpload : { value : fs.createReadStream('test.pdf'),
-              feedElementFileUpload : { value : fs.createReadStream('test.pdf'),      
+              //feedElementFileUpload : { value : fs.createReadStream(m.data.payload.Id__c + '.pdf'),      
                         options: { "Content-Type" : "application/octet-stream; charset=ISO-8859-1",
                         "filename" : m.data.payload.Id__c + '.pdf'}
               } 
-            })
-          //}
-          }, function (err, res, body) {
-            console.log(JSON.stringify(err) + JSON.stringify(res) + JSON.stringify(body));
+            //})
+          }
+          }, function (err, res, b) {
             console.log('upload complete');
+            obj = JSON.parse(b);
+            console.log(JSON.stringify(b));
+            console.log(obj.id);
+
+            endpoint = body.instance_url + '/services/data/v43.0/chatter/feed-elements';
+            console.log('posting element');
+            request({
+              uri : endpoint,
+              method : 'POST',
+              headers : {
+                'Authorization' : "Bearer " + body.access_token,
+                'Content-Type' : 'application/json; charset=UTF-8'},   
+              body: JSON.stringify(
+              { "body":   {
+                          "messageSegments" : [{
+                              "type" : "Text", 
+                              "text" : "Here is another file for review."
+                          }]
+                        },
+                "capabilities":{
+                  "files":{
+                    "items": [
+                        {"id": obj.id}
+                    ]
+                  }
+              },
+              "subjectId" : m.data.payload.Id__c,
+              "feedElementType" : "FeedItem"
+                })            
+            }, function (err, res, body) {
+              console.log('post complete');
+              console.log(JSON.stringify(err) + JSON.stringify(res) + JSON.stringify(body));
+  
+  
+  
+            });
           });
         })();
       });
+    } else {
+      console.log(JSON.stringify(h));
     }
   });
 });

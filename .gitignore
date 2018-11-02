@@ -1,5 +1,6 @@
 variables.js
 test.pdf
+*.pdf
 
 # Logs
 logs
