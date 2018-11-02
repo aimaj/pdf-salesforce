@@ -1,24 +1,9 @@
 const puppeteer = require('puppeteer');
 require('cometd-nodejs-client').adapt();
 var lib = require('cometd'); 
-//var variables = require('./variables');
 var request = require('request');
 const fs = require('fs');
 var cometd = new lib.CometD();
-
-/**
- * TODO:
- * load onto heroku
- * add more things to the constants file, eg: api version, plat event name
- */
-
- /*
-var username = variables.username || process.env.username;
-var password = variables.password || process.env.password;
-var token = variables.token || process.env.token;
-var clientId = variables.clientId || process.env.clientId;
-var clientSecret = variables.clientSecret || process.env.clientSecret;
-*/
 
 var username = process.env.username;
 var password = process.env.password;
@@ -70,9 +55,8 @@ request.post('https://login.salesforce.com/services/oauth2/token', {
           console.log('uploading pdf');
           //4. upload the PDF
           
-          //file upload endpoint for later, just uploads to user home
+          //upload to admin user files home
           var endpoint = body.instance_url + '/services/data/v43.0/connect/files/users/0056F00000AkxQCQAZ';
-          //var endpoint = body.instance_url + '/services/data/v43.0/chatter/feed-elements';
           request({
             uri : endpoint,
             method : 'POST',
@@ -81,39 +65,16 @@ request.post('https://login.salesforce.com/services/oauth2/token', {
               'Content-Type' : 'multipart/form-data'},   
             formData: 
             {
-            //JSON.stringify({
-              /*
-              json : { "body":   {
-                        "messageSegments" : [{
-                            "type" : "Text", 
-                            "text" : "Here is another file for review."
-                        }]
-                      }, 
-                      "capabilities":{
-                         "content":{
-                            "description":"PDF",
-                            "title": m.data.payload.Id__c + '.pdf'
-                         }
-                      },
-                      "subjectId" : m.data.payload.Id__c,
-                      "feedElementType" : "FeedItem",
-                      "options": { "Content-Type" : "application/json; charset=UTF-8"}
-              }, 
-              */
-              fileData : { value : fs.createReadStream(m.data.payload.Id__c + '.pdf'),
-              //feedItemFileUpload : { value : fs.createReadStream('test.pdf'),
-              //feedElementFileUpload : { value : fs.createReadStream(m.data.payload.Id__c + '.pdf'),      
+              fileData : { value : fs.createReadStream(m.data.payload.Id__c + '.pdf'),  
                         options: { "Content-Type" : "application/octet-stream; charset=ISO-8859-1",
                         "filename" : m.data.payload.Id__c + '.pdf'}
               } 
-            //})
           }
           }, function (err, res, b) {
-            console.log('upload complete');
             obj = JSON.parse(b);
-            console.log(JSON.stringify(b));
-            console.log(obj.id);
+            console.log('upload complete, file id ' + obj.id);
 
+            //5. make a chatter post on the original record, and attach the file
             endpoint = body.instance_url + '/services/data/v43.0/chatter/feed-elements';
             console.log('posting element');
             request({
@@ -126,7 +87,7 @@ request.post('https://login.salesforce.com/services/oauth2/token', {
               { "body":   {
                           "messageSegments" : [{
                               "type" : "Text", 
-                              "text" : "Here is another file for review."
+                              "text" : "PDF file generated."
                           }]
                         },
                 "capabilities":{
@@ -138,13 +99,9 @@ request.post('https://login.salesforce.com/services/oauth2/token', {
               },
               "subjectId" : m.data.payload.Id__c,
               "feedElementType" : "FeedItem"
-                })            
+                })
             }, function (err, res, body) {
               console.log('post complete');
-              console.log(JSON.stringify(err) + JSON.stringify(res) + JSON.stringify(body));
-  
-  
-  
             });
           });
         })();
