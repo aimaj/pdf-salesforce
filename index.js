@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer');
 require('cometd-nodejs-client').adapt();
 var lib = require('cometd'); 
-var variables = require('./variables');
+//var variables = require('./variables');
 var request = require('request');
 const fs = require('fs');
 var cometd = new lib.CometD();
