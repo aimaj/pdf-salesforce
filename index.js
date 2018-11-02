@@ -54,7 +54,7 @@ request.post('https://login.salesforce.com/services/oauth2/token', {
         console.log('event received');
         //3. create the PDF
         (async () => {
-          const browser = await puppeteer.launch();
+          const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
           const page = await browser.newPage();
           await page.goto('https://login.salesforce.com', {waitUntil: 'networkidle0'});
           await page.click('#username');
