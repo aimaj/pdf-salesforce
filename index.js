@@ -8,20 +8,24 @@ var cometd = new lib.CometD();
 
 /**
  * TODO:
- * implement uploading file onto the record passed in the platform event
  * load onto heroku
  * add more things to the constants file, eg: api version, plat event name
  */
 
+var username = variables.username || process.env.username;
+var password = variables.password || process.env.password;
+var token = variables.token || process.env.token;
+var clientId = variables.clientId || process.env.clientId;
+var clientSecret = variables.clientSecret || process.env.clientSecret;
 
 //1. login to salesforce
 request.post('https://login.salesforce.com/services/oauth2/token', {
   form: {
   grant_type : 'password',
-  client_id : variables.clientId,
-  client_secret : variables.clientSecret,
-  username : variables.username,
-  password : variables.password + variables.token },  
+  client_id : clientId,
+  client_secret : clientSecret,
+  username : username,
+  password : password + token },  
   json: true
 }, function (err, res, body) {
   console.log('salesforce login success');
@@ -46,9 +50,9 @@ request.post('https://login.salesforce.com/services/oauth2/token', {
           const page = await browser.newPage();
           await page.goto('https://login.salesforce.com', {waitUntil: 'networkidle0'});
           await page.click('#username');
-          await page.keyboard.type(variables.username);
+          await page.keyboard.type(username);
           await page.click('#password');
-          await page.keyboard.type(variables.password);
+          await page.keyboard.type(password);
           await page.click('#Login');
           await page.waitForNavigation({waitUntil: ['domcontentloaded', 'networkidle0'], timeout: 3000000});
           var test = await page.goto(body.instance_url + '/apex/testPage?id=' + m.data.payload.Id__c, {waitUntil: ['domcontentloaded', 'networkidle0']});
