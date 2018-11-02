@@ -12,11 +12,19 @@ var cometd = new lib.CometD();
  * add more things to the constants file, eg: api version, plat event name
  */
 
+ /*
 var username = variables.username || process.env.username;
 var password = variables.password || process.env.password;
 var token = variables.token || process.env.token;
 var clientId = variables.clientId || process.env.clientId;
 var clientSecret = variables.clientSecret || process.env.clientSecret;
+*/
+
+var username = process.env.username;
+var password = process.env.password;
+var token = process.env.token;
+var clientId = process.env.clientId;
+var clientSecret = process.env.clientSecret;
 
 //1. login to salesforce
 request.post('https://login.salesforce.com/services/oauth2/token', {
